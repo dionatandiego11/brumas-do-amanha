@@ -6,6 +6,7 @@ const PERSISTENCE_DB = "brumas-do-amanha-dashboard";
 const PERSISTENCE_STORE = "bases";
 const PERSISTENCE_KEY = "base-ativa";
 const LOCAL_STORAGE_KEY = "brumas-do-amanha:base-ativa";
+const PERSISTENCE_SCHEMA = 2;
 
 const STATUS_ORDER = ["Não Iniciado", "Em Planejamento", "Em Execução", "Concluído", "Cancelado"];
 const STATUS_COLORS = {
@@ -117,17 +118,23 @@ function rowsWithAccessor(sheet) {
         header: 1,
         defval: null,
         raw: true,
-        range: boundedRange(sheet, 29) // A:AD, campos efetivamente usados na base mestre
+        range: boundedRange(sheet, 30) // A:AE, campos efetivamente usados na base mestre
     });
     const headers = (matrix[0] || []).map(normalizedHeader);
-    const indexes = new Map(headers.map((header, index) => [header, index]));
+    const indexes = new Map();
+    headers.forEach((header, index) => {
+        if (!indexes.has(header)) indexes.set(header, []);
+        indexes.get(header).push(index);
+    });
     return matrix.slice(1).map((row, index) => ({
         excelRow: index + 2,
         row,
         get(...names) {
             for (const name of names) {
-                const position = indexes.get(normalizedHeader(name));
-                if (position !== undefined && row[position] !== null && row[position] !== undefined) return row[position];
+                const positions = indexes.get(normalizedHeader(name)) || [];
+                for (const position of positions) {
+                    if (row[position] !== null && row[position] !== undefined) return row[position];
+                }
             }
             return null;
         }
@@ -158,10 +165,9 @@ function parseProjects(sheet) {
         if (!isMeaningful(sourceStatus)) inferredStatus += 1;
 
         const eixo = clean(record.get("Eixo Estratégico")) || "Eixo não informado";
-        const ppaProgram = record.get("Programa PPA");
-        const programa = isMeaningful(ppaProgram)
-            ? clean(ppaProgram)
-            : `Sem programa PPA informado — ${eixo}`;
+        // A planilha atual usa "Programa Governamental"; versões anteriores usavam "Programa PPA".
+        const ppaProgram = record.get("Programa Governamental", "Programa PPA");
+        const programa = clean(ppaProgram) || "Não informado na planilha";
         const budgets = [2026, 2027, 2028, 2029].map(year => toNumber(record.get(`Orçamento ${year}`)));
         const investments = [2026, 2027, 2028, 2029].map(year => toNumber(record.get(`Investimento ${year}`)));
 
@@ -282,6 +288,7 @@ async function readStateFromIndexedDB() {
 function currentPersistenceRecord(sourceName) {
     return {
         id: PERSISTENCE_KEY,
+        schema: PERSISTENCE_SCHEMA,
         sourceName,
         savedAt: new Date().toISOString(),
         projects: PROJETOS_DB,
@@ -324,7 +331,7 @@ async function readPersistedDashboardState() {
 
 async function restorePersistedDashboardState() {
     const record = await readPersistedDashboardState();
-    if (!record || !Array.isArray(record.projects) || !record.projects.length || !Array.isArray(record.deliveries)) {
+    if (!record || record.schema !== PERSISTENCE_SCHEMA || !Array.isArray(record.projects) || !record.projects.length || !Array.isArray(record.deliveries)) {
         return false;
     }
     PROJETOS_DB = record.projects;
@@ -371,9 +378,11 @@ async function importWorkbook(arrayBuffer, sourceName) {
             `${PROJETOS_DB.length} projetos carregados`,
             `${sourceName} • ${deliveryCount} entregas detalhadas${persisted ? " • salvo neste navegador" : ""}.${suffix}`
         );
+        return true;
     } catch (error) {
         console.error(error);
         setImportState("error", "Não foi possível importar a planilha", error.message || "Arquivo inválido.");
+        return false;
     } finally {
         if (button) button.disabled = false;
     }
@@ -384,10 +393,10 @@ async function loadDefaultWorkbook() {
         setImportState("loading", "Carregando dados.xlsx...", "Buscando a planilha padrão ao lado do dashboard.");
         const response = await fetch("./dados.xlsx", { cache: "no-store" });
         if (!response.ok) throw new Error(`Falha HTTP ${response.status}`);
-        await importWorkbook(await response.arrayBuffer(), "dados.xlsx");
+        return await importWorkbook(await response.arrayBuffer(), "dados.xlsx");
     } catch (error) {
         console.warn("Carregamento automático indisponível:", error);
-        setImportState("", "Selecione a planilha", "O carregamento automático não está disponível; use “Importar dados.xlsx”.");
+        return false;
     }
 }
 
@@ -671,10 +680,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     refreshAllViews();
-    if (await restorePersistedDashboardState()) return;
+    const restored = await restorePersistedDashboardState();
     if (window.location.protocol === "file:") {
-        setImportState("", "Selecione a planilha", "Por segurança do navegador, use “Importar dados.xlsx” ao abrir este HTML diretamente.");
+        if (!restored) {
+            setImportState("", "Selecione a planilha", "Por segurança do navegador, use “Importar dados.xlsx” ao abrir este HTML diretamente.");
+        }
     } else {
-        loadDefaultWorkbook();
+        // No Vercel, a planilha publicada é sempre consultada; a persistência serve como fallback.
+        const loaded = await loadDefaultWorkbook();
+        if (!loaded && !restored) {
+            setImportState("", "Selecione a planilha", "O carregamento automático não está disponível; use “Importar dados.xlsx”.");
+        }
     }
 });
