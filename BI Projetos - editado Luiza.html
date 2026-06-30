@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI - Plano de Governo e PPA - Brumadinho</title>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --header-dark: #0f172a;
+            --text-main: #334155;
+            --border-color: #cbd5e1;
+            
+            --brumas-blue: #0284c7;
+            --brumas-navy: #000080;
+            --brumas-green: #22c55e;
+            --brumas-yellow: #eab308;
+            --brumas-purple: #a855f7;
+            
+            --kpi-total-border: #64748b;
+            --kpi-nao-ini-border: #94a3b8;
+            --kpi-plan-border: #a855f7;
+            --kpi-exec-border: #f59e0b;
+            --kpi-concl-border: #10b981;
+            --kpi-canc-border: #06b6d4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            position: relative;
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('FUNDO.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.3;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .dashboard-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 15px;
+        }
+
+        .brand-header-img {
+            width: 100%;
+            display: block;
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            object-fit: cover;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-bottom: none;
+        }
+
+        /* Sistema de Abas */
+        .tabs-navigation {
+            background: #ffffff;
+            display: flex;
+            border-left: 1px solid rgba(226, 232, 240, 0.9);
+            border-right: 1px solid rgba(226, 232, 240, 0.9);
+            border-bottom: 2px solid #e2e8f0;
+            padding: 0 30px;
+        }
+
+        .tab-button {
+            padding: 14px 24px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            background: none;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            position: relative;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-button:hover {
+            color: var(--brumas-navy);
+        }
+
+        .tab-button.active {
+            color: var(--brumas-navy);
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--brumas-navy);
+        }
+
+        .dashboard-container {
+            background: #ffffff;
+            padding: 30px;
+            border-left: 1px solid rgba(226, 232, 240, 0.9);
+            border-right: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .brand-footer-img {
+            width: 100%;
+            display: block;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            object-fit: cover;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-top: none;
+        }
+
+        /* Elementos da Aba 1 */
+        .header-section {
+            display: table;
+            width: 100%;
+            margin-bottom: 24px;
+            border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+            padding-bottom: 16px;
+        }
+
+        .title-block {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        .title-block h1 {
+            font-size: 24px;
+            color: var(--brumas-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .title-block p {
+            font-size: 13px;
+            color: #475569;
+            margin-top: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-block {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: right;
+        }
+
+        .filter-group {
+            display: inline-block;
+            margin-left: 15px;
+            text-align: left;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .filter-control {
+            padding: 10px 14px;
+            border: 2px solid rgba(15, 23, 42, 0.1);
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: var(--text-main);
+            font-size: 13px;
+            min-width: 230px;
+            cursor: pointer;
+            outline: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-container {
+            margin-bottom: 24px;
+            background: rgba(241, 245, 249, 0.8);
+            padding: 10px 18px;
+            border-radius: 8px;
+            display: inline-block;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .toggle-container span {
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 12px;
+            color: #475569;
+        }
+        .toggle-label {
+            font-size: 13px;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+        .toggle-label input {
+            margin-right: 6px;
+            accent-color: var(--brumas-blue);
+        }
+
+        .kpi-grid {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 12px 0;
+            margin-bottom: 24px;
+        }
+
+        .kpi-column {
+            display: table-cell;
+        }
+
+        .kpi-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 18px 16px;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-top: 5px solid var(--kpi-total-border);
+            cursor: help;
+            height: 110px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06); }
+        .kpi-card.total { border-top-color: var(--kpi-total-border); }
+        .kpi-card.nao-ini { border-top-color: var(--kpi-nao-ini-border); }
+        .kpi-card.plan { border-top-color: var(--kpi-plan-border); }
+        .kpi-card.exec { border-top-color: var(--kpi-exec-border); }
+        .kpi-card.concl { border-top-color: var(--kpi-concl-border); }
+        .kpi-card.canc { border-top-color: var(--kpi-canc-border); }
+
+        .kpi-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value-row { display: flex; align-items: baseline; justify-content: space-between; }
+        .kpi-value { font-size: 32px; font-weight: 800; color: #0f172a; }
+
+        .kpi-card .custom-tooltip {
+            visibility: hidden; position: absolute; top: 100%; left: 0; width: 260px;
+            background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 14px;
+            z-index: 100; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); margin-top: 8px;
+            font-size: 12px; opacity: 0; transition: opacity 0.2s; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .kpi-card:hover .custom-tooltip { visibility: visible; opacity: 1; }
+        .tooltip-title { font-weight: 700; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-bottom: 8px; color: #38bdf8; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+        .tooltip-row { display: flex; justify-content: space-between; margin-bottom: 4px; line-height: 1.4; }
+        .tooltip-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px; text-align: left; }
+
+        .middle-section { display: table; width: 100%; table-layout: fixed; margin-bottom: 24px; }
+        .middle-left { display: table-cell; width: 35%; padding-right: 12px; vertical-align: top; }
+        .middle-right { display: table-cell; width: 65%; padding-left: 12px; vertical-align: top; }
+
+        .section-card { background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 10px; padding: 20px; height: 100%; min-height: 230px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02); border-left: 4px solid var(--brumas-blue); }
+        .section-card h2 { font-size: 14px; font-weight: 800; color: var(--header-dark); margin-bottom: 18px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(226, 232, 240, 0.8); padding-bottom: 8px; width: 100%; text-align: left; }
+        .invest-real-value { font-size: 34px; font-weight: 800; color: #10b981; margin-bottom: 12px; letter-spacing: -0.5px; }
+        
+        .progress-container { background: #f1f5f9; border-radius: 20px; height: 16px; width: 100%; margin-bottom: 16px; overflow: hidden; border: 1px solid #e2e8f0; }
+        .progress-bar { background: linear-gradient(90deg, var(--brumas-green) 0%, #10b981 100%); height: 100%; width: 90%; border-radius: 20px; transition: width 0.4s ease; }
+        .invest-footer { font-size: 13px; font-weight: 700; color: #475569; }
+
+        .matrix-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .matrix-table th, .matrix-table td { border: 1px solid #e2e8f0; padding: 10px 12px; font-size: 13px; text-align: center; }
+        .matrix-table th { background: #f8fafc; color: #475569; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+        .matrix-table td.left-align { text-align: left !important; font-weight: 600; color: #334155; background: #f8fafc; width: 50%; padding-left: 16px; }
+
+        .charts-section { display: table; width: 100%; table-layout: fixed; margin-bottom: 24px; }
+        .chart-column { display: table-cell; width: 50%; }
+        .chart-column:first-child { padding-right: 12px; }
+        .chart-column:last-child { padding-left: 12px; }
+        .chart-box { background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02); border-left: 4px solid var(--brumas-yellow); }
+        .chart-box.sec-border { border-left: 4px solid var(--brumas-blue); }
+        .chart-box h3 { font-size: 13px; font-weight: 800; color: var(--header-dark); margin-bottom: 18px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(226, 232, 240, 0.8); padding-bottom: 8px; }
+
+        .stacked-bar { height: 22px; border-radius: 6px; overflow: hidden; background: #f1f5f9; display: flex; box-shadow: inset 0 1px 3px rgba(0,0,0,0.06); }
+        .bar-segment { height: 100%; transition: width 0.3s ease; }
+        .chart-row { margin-bottom: 16px; }
+        .chart-label { font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #475569; }
+
+        .legend-container { background: rgba(255, 255, 255, 0.9); padding: 14px; border-radius: 8px; border: 1px solid rgba(226, 232, 240, 0.8); display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 10px; font-size: 12px; font-weight: 700; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        /* Classes de Formatação Condicional dos Indicadores */
+        .status-meta-atingida {
+            color: #10b981 !important;
+            font-weight: 700;
+        }
+        .status-meta-abaixo {
+            color: #dc2626 !important;
+            font-weight: 700;
+        }
+
+        /* ABA 2: REPORT DO PROJETO */
+        .project-header-card {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .project-eixo-tag {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .project-title-main {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .project-info-row {
+            display: flex;
+            align-items: flex-start;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 16px;
+        }
+
+        .publico-alvo-box {
+            border-left: 3px solid var(--brumas-navy);
+            padding-left: 12px;
+            min-width: 280px;
+        }
+
+        /* Bloco Dinâmico do PPA com folga substancial (alinhado bem à frente) */
+        .ppa-inline-block {
+            margin-left: 200px; /* Folga estendida para distanciamento maior */
+            padding-left: 12px;
+            flex: 1;
+        }
+
+        .ppa-action-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .ppa-action-desc {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .publico-alvo-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .publico-alvo-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .project-quote {
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            line-height: 1.5;
+            flex: 1;
+            padding-bottom: 4px;
+        }
+
+        .plurianual-card {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            margin-bottom: 24px;
+        }
+
+        .plurianual-card h3 {
+            font-size: 12px;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .plurianual-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .plurianual-table th, .plurianual-table td {
+            padding: 12px 16px;
+            font-size: 13px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .plurianual-table th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .plurianual-table td.left-align {
+            text-align: left !important;
+            font-weight: 700;
+            color: #1e293b;
+            width: 40%;
+            padding-left: 16px;
+        }
+
+        .badge-meta { color: #475569; font-weight: 600; }
+        .highlight-cell { background-color: #f0fdf4; font-weight: 700; }
+
+        /* Estrutura do Cronograma Gantt */
+        .gantt-card {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .gantt-header-bar {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gantt-header-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .gantt-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .gantt-table th, .gantt-table td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 4px;
+            font-size: 12px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .gantt-table th {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            border: 1px solid #1e2937;
+        }
+
+        .gantt-table th:nth-child(1), .gantt-table td:nth-child(1) { width: 40px; }
+        .gantt-table th:nth-child(2), .gantt-table td:nth-child(2) { width: 25%; text-align: left !important; padding-left: 16px; }
+        .gantt-table th:nth-child(3), .gantt-table td:nth-child(3) { width: 120px; }
+        .gantt-table th:nth-child(4), .gantt-table td:nth-child(4) { width: 80px; }
+        .gantt-table th:nth-child(5), .gantt-table td:nth-child(5) { width: 90px; }
+        .gantt-table th:nth-child(6), .gantt-table td:nth-child(6) { width: 90px; }
+
+        .gantt-table td.left-align {
+            text-align: left !important;
+            padding-left: 16px;
+        }
+
+        .gantt-table th.month-sub {
+            background-color: #1e293b;
+            font-size: 9px;
+            padding: 8px 2px;
+            text-align: center !important;
+        }
+
+        .badge-progress-gantt {
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            display: inline-block;
+            font-size: 11px;
+            color: #ffffff;
+            text-align: center;
+            min-width: 50px;
+        }
+        
+        .badge-progress-gantt.status-100 { background-color: #10b981; }
+        .badge-progress-gantt.status-andamento { background-color: #ff9800; }
+        .badge-progress-gantt.status-0 { background-color: #94a3b8; }
+
+        .gantt-timeline-cell {
+            padding: 0 !important;
+            position: relative;
+            background-color: #ffffff;
+        }
+
+        .gantt-timeline-cell::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 66.66%;
+            border-left: 2px dashed #dc2626;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .gantt-bar-wrapper {
+            position: relative;
+            height: 40px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            background-image: linear-gradient(to right, #f1f5f9 1px, transparent 1px);
+            background-size: 11.111% 100%;
+        }
+
+        .gantt-bar-fill {
+            height: 12px;
+            border-radius: 6px;
+            position: absolute;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .gantt-bar-bg {
+            width: 100%;
+            height: 100%;
+            background-color: #e2e8f0; 
+            border-radius: 6px;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .gantt-bar-inner-progress {
+            height: 100%;
+        }
+
+        .gantt-bar-bg.full-green .gantt-bar-inner-progress {
+            background-color: #10b981;
+            width: 100% !important;
+        }
+
+        .gantt-bar-bg.partial-yellow .gantt-bar-inner-progress {
+            background-color: #ff9800;
+        }
+
+        .gantt-bar-bg.zero-gray .gantt-bar-inner-progress {
+            background-color: #cbd5e1;
+            width: 0% !important;
+        }
+
+        .gantt-bar-fill.coordenacao { left: 24%; width: 23%; }
+        .gantt-bar-fill.tecnico-1 { left: 24%; width: 14%; }
+        .gantt-bar-fill.tecnico-2 { left: 36%; width: 16%; }
+        .gantt-bar-fill.tecnico-3 { left: 55%; width: 12%; }
+
+        .gantt-footer-date {
+            text-align: right;
+            font-size: 12px;
+            font-weight: 700;
+            color: #dc2626;
+            padding: 8px 10px 0 0;
+        }
+
+        @media(max-width: 1024px) {
+            .header-section, .title-block, .filter-block { display: block; width: 100%; text-align: left; }
+            .filter-block { margin-top: 15px; }
+            .filter-group { margin-left: 0; margin-right: 15px; margin-bottom: 10px; }
+            
+            .kpi-grid, .kpi-column, .middle-section, .middle-left, .middle-right, .charts-section, .chart-column { display: block; width: 100%; padding: 0; }
+            .kpi-column, .middle-left, .chart-column:first-child { margin-bottom: 24px; }
+            .kpi-card { height: auto; }
+            .project-info-row { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .ppa-inline-block { margin-left: 0; padding-left: 0; border-top: 1px dashed #e2e8f0; padding-top: 12px; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+    <img src="cabecalho.jpg" alt="Brumas do Amanhã Planejamento Estratégico" class="brand-header-img">
+
+    <div class="tabs-navigation">
+        <button class="tab-button" onclick="switchTab(event, 'aba-kpi')">KPIs</button>
+        <button class="tab-button active" onclick="switchTab(event, 'aba-projeto')">Report do Projeto</button>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <!-- ABA 1: KPIs -->
+        <div id="aba-kpi" class="tab-content">
+            <div class="header-section">
+                <div class="title-block">
+                    <h1>Projetos Estratégicos</h1>
+                    <p>Plano de Governo e PPA</p>
+                </div>
+                <div class="filter-block">
+                    <div class="filter-group">
+                        <label for="filter-secretaria">Secretaria Responsável</label>
+                        <select id="filter-secretaria" class="filter-control" onchange="updateDashboard()">
+                            <option value="Todos">Todas as Secretarias (Geral)</option>
+                            <option value="Secretaria de Saúde">Secretaria da Saúde</option>
+                            <option value="Secretaria de Obras">Secretaria de Obras</option>
+                            <option value="Secretaria de Planejamento">Secretaria de Planejamento</option>
+                            <option value="Secretaria de Administração">Secretaria de Administração</option>
+                            <option value="Secretaria de Agricultura">Secretaria de Agricultura</option>
+                            <option value="Secretaria de Cultura e Turismo">Secretaria de Cultura e Turismo</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-eixo">Eixo Estratégico</label>
+                        <select id="filter-eixo" class="filter-control" onchange="updateDashboard()">
+                            <option value="Todos">Todos os Eixos Estratégicos</option>
+                            <option value="01 Reparação">01 Reparação</option>
+                            <option value="02 Desenvolvimento Humano">02 Desenvolvimento Humano</option>
+                            <option value="03 Infraestrutura e Mobilidade">03 Infraestrutura e Mobilidade</option>
+                            <option value="04 Desenvolvimento Econômico">04 Desenvolvimento Econômico</option>
+                            <option value="05 Governança">05 Governança</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toggle-container">
+                <span>VISÃO GERAL:</span>
+                <label class="toggle-label">
+                    <input type="radio" name="tooltip-vision" value="eixo" checked onchange="updateTooltipVision()"> POR EIXO
+                </label>
+                <label class="toggle-label">
+                    <input type="radio" name="tooltip-vision" value="secretaria" onchange="updateTooltipVision()"> POR SECRETARIA
+                </label>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-column"><div class="kpi-card total"><div class="kpi-title">Quantidade de Projetos</div><div class="kpi-value-row"><div class="kpi-value" id="kpi-total-val">128</div></div><div class="custom-tooltip" id="tip-total"><div class="tooltip-title">Distribuição</div><div class="tooltip-contents"></div></div></div></div>
+                <div class="kpi-column"><div class="kpi-card nao-ini"><div class="kpi-title">Não Iniciados</div><div class="kpi-value-row"><div class="kpi-value" id="kpi-nao-val">25</div></div><div class="custom-tooltip" id="tip-nao"><div class="tooltip-title">Distribuição</div><div class="tooltip-contents"></div></div></div></div>
+                <div class="kpi-column"><div class="kpi-card plan"><div class="kpi-title">Em Planejamento</div><div class="kpi-value-row"><div class="kpi-value" id="kpi-plan-val">30</div></div><div class="custom-tooltip" id="tip-plan"><div class="tooltip-title">Distribuição</div><div class="tooltip-contents"></div></div></div></div>
+                <div class="kpi-column"><div class="kpi-card exec"><div class="kpi-title">Em Execução</div><div class="kpi-value-row"><div class="kpi-value" id="kpi-exec-val">45</div></div><div class="custom-tooltip" id="tip-exec"><div class="tooltip-title">Distribuição</div><div class="tooltip-contents"></div></div></div></div>
+                <div class="kpi-column"><div class="kpi-card concl"><div class="kpi-title">Concluídos</div><div class="kpi-value-row"><div class="kpi-value" id="kpi-concl-val">20</div></div><div class="custom-tooltip" id="tip-concl"><div class="tooltip-title">Distribuição</div><div class="tooltip-contents"></div></div></div></div>
+                <div class="kpi-column"><div class="kpi-card canc"><div class="kpi-title">Cancelados</div><div class="kpi-value-row"><div class="kpi-value" id="kpi-canc-val">8</div></div><div class="custom-tooltip" id="tip-canc"><div class="tooltip-title">Distribuição</div><div class="tooltip-contents"></div></div></div></div>
+            </div>
+
+            <div class="middle-section">
+                <div class="middle-left">
+                    <div class="section-card kpi-card total" style="height: auto; min-height: 230px;">
+                        <h2>Investimento</h2>
+                        <div class="kpi-title" style="margin-bottom: 4px;">Vr. Gasto</div>
+                        <div class="invest-real-value" id="invest-real-txt">R$ 54.000.000</div>
+                        <div class="progress-container"><div class="progress-bar" id="invest-progress-bar"></div></div>
+                        <div class="invest-footer">Vr. Orçado: <span id="invest-orcado-txt">R$ 60.000.000</span> <span id="invest-perc-txt" style="color:#10b981; margin-left:8px;">(90%)</span></div>
+                        
+                        <div class="custom-tooltip" id="tip-investimento" style="width: 280px;">
+                            <div class="tooltip-title">Gasto por Categoria</div>
+                            <div class="tooltip-contents"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="middle-right">
+                    <div class="section-card kpi-card total" style="height: auto; min-height: 230px; border-left: 4px solid var(--brumas-green);">
+                        <h2>Projetos Não Iniciados e Cancelados</h2>
+                        <table class="matrix-table">
+                            <thead><tr><th>Justificativa Qualitativa</th><th>Não Iniciados</th><th>Cancelados</th></tr></thead>
+                            <tbody id="matrix-body"></tbody>
+                        </table>
+                        
+                        <div class="custom-tooltip" id="tip-matriz" style="width: 280px;">
+                            <div class="tooltip-title">Resumo de Alocação</div>
+                            <div class="tooltip-contents"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-section">
+                <div class="chart-column"><div class="chart-box"><h3>Distribuição por Eixo Estratégico e Status</h3><div class="bar-chart-container" id="axis-chart-container"></div></div></div>
+                <div class="chart-column"><div class="chart-box sec-border"><h3>Distribuição por Secretaria Responsável e Status</h3><div class="bar-chart-container" id="secretaria-chart-container"></div></div></div>
+            </div>
+
+            <div class="legend-container">
+                <div class="legend-item"><div class="legend-color" style="background: #94a3b8;"></div>Não Iniciado</div>
+                <div class="legend-item"><div class="legend-color" style="background: #a855f7;"></div>Em Planejamento</div>
+                <div class="legend-item"><div class="legend-color" style="background: #f59e0b;"></div>Em Execução</div>
+                <div class="legend-item"><div class="legend-color" style="background: #10b981;"></div>Concluído</div>
+                <div class="legend-item"><div class="legend-color" style="background: #06b6d4;"></div>Cancelado</div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 🔍 CAMADA 2: DETALHAMENTO DO PROGRAMA      -->
+        <!-- ========================================== -->
+        <div id="tab2" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Quadro de Sinais do Portfólio</h2>
+                    <p class="text-sm text-slate-500">Filtre por programa para abrir os metadados e o cronograma do portfólio.</p>
+                </div>
+                <select id="programFilter" onchange="filterProgramme(this.value)" class="bg-white border border-slate-200 text-slate-800 rounded-lg p-2.5 text-sm font-medium outline-none w-full md:w-72 shadow-sm focus:border-cyan-500">
+                    <!-- Opções dinâmicas -->
+                </select>
+            </div>
+
+            <!-- CABEÇALHO DO PROGRAMA -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal lg:col-span-3 space-y-4 shadow-sm">
+                    <div>
+                        <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold tracking-wider uppercase" id="c2-eixo">EIXO</span>
+                        <h3 class="text-2xl font-black text-slate-800 mt-2" id="c2-nome-programa">Nome do Programa</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm border-t border-slate-100 pt-4">
+                        <div>
+                            <p class="text-slate-500 font-bold uppercase text-xs">🎯 Objetivo:</p>
+                            <p class="text-slate-700 mt-1" id="c2-obj-programa">Objetivo detalhado do programa público.</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 font-bold uppercase text-xs">👥 Público-Alvo:</p>
+                            <p class="text-slate-700 mt-1" id="c2-publico-programa">Público-alvo mapeado.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FINANCEIRO C2 -->
+                <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal flex flex-col justify-between shadow-sm" id="kpi-fin-c2">
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Investimento do Programa</p>
+                        <p class="text-3xl font-black text-slate-800 mt-2" id="c2-real">R$ 0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Orçado: <span class="text-slate-800 font-bold" id="c2-orcado">R$ 0</span></p>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 mt-2 overflow-hidden">
+                            <div id="c2-bar" class="bg-cyan-500 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MINI CARDS PROGRAMA -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl shadow-sm">
+                    <p class="text-xs text-emerald-600 uppercase font-bold tracking-wide">% Em Execução Física</p>
+                    <p class="text-2xl font-black text-emerald-700 mt-1" id="c2-perc-exec">0%</p>
+                </div>
+                <div class="bg-red-50 border border-red-100 p-4 rounded-xl shadow-sm">
+                    <p class="text-xs text-red-600 uppercase font-bold tracking-wide">⚠️ Projetos Não Iniciados</p>
+                    <p class="text-2xl font-black text-red-700 mt-1" id="c2-qtd-ni">0</p>
+                </div>
+                <div class="bg-sky-50 border border-sky-100 p-4 rounded-xl shadow-sm">
+                    <p class="text-xs text-sky-600 uppercase font-bold tracking-wide">🔵 Projetos Cancelados</p>
+                    <p class="text-2xl font-black text-sky-700 mt-1" id="c2-qtd-canc">0</p>
+                </div>
+            </div>
+
+            <!-- CRONOGRAMA DO PORTFÓLIO -->
+            <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal shadow-sm">
+                <p class="text-sm font-bold text-slate-700 uppercase mb-4 tracking-wider">🗂️ Carteira de Projetos Vinculados</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-500 font-bold bg-slate-50">
+                                <th class="p-3.5 rounded-l-lg">Nome do Projeto</th>
+                                <th class="p-3.5">Secretaria</th>
+                                <th class="p-3.5">Status</th>
+                                <th class="p-3.5">Término</th>
+                                <th class="p-3.5 text-right rounded-r-lg">Custo Actual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="c2-table-projects" class="divide-y divide-slate-100">
+                            <!-- Inserido dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+	<!-- ABA 3: REPORT DO PROJETO -->
+        <div id="aba-projeto" class="tab-content active">
+            <div class="project-header-card">
+                <div class="project-eixo-tag">Eixo Estratégico 02: Desenvolvimento Humano</div>
+                <h2 class="project-title-main">Programa de Fortalecimento da Atenção Básica</h2>
+                
+                <div class="project-quote" style="margin-bottom: 16px; font-style: normal; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px;">
+                    <strong>Meta:</strong> "Promover a universalização do acesso à saúde primária através da ampliação de unidades e modernização tecnológica do atendimento municipal."
+                </div>
+
+                <div class="project-info-row">
+                    <!-- Bloco Público Alvo -->
+                    <div class="publico-alvo-box">
+                        <div class="publico-alvo-label" style="color: var(--brumas-navy); font-size: 11px;">Público Alvo:</div>
+                        <div class="publico-alvo-val">Cidadãos de Baixa Renda e Grupos Vulneráveis</div>
+                    </div>
+
+                    <!-- Bloco Dinâmico do PPA (Com folga estendida de 120px à frente) -->
+                    <div class="ppa-inline-block">
+                        <div class="ppa-action-title">135 - Atenção Básica</div>
+                        <div class="ppa-action-desc">Promover a atenção básica em Brumadinho.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INDICADOR DO PROJETO -->
+            <div class="plurianual-card">
+                <h3>Indicador do Projeto</h3>
+                <table class="plurianual-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding-left: 16px;">Indicador</th>
+                            <th>Meta</th>
+                            <th class="highlight-cell">2026</th>
+                            <th>2027</th>
+                            <th>2028</th>
+                            <th>2029</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="left-align">Percentual de bairros com iluminação 100% em LED</td>
+                            <td class="badge-meta" data-meta="60">60%</td>
+                            <td class="highlight-cell analise-meta" data-valor="60">60%</td>
+                            <td class="analise-meta" data-valor="0">—</td>
+                            <td class="analise-meta" data-valor="0">—</td>
+                            <td class="analise-meta" data-valor="0">—</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- CRONOGRAMA DO PROJETO -->
+            <div class="gantt-card">
+                <div class="gantt-header-bar">
+                    <div class="gantt-header-title">Cronograma do Projeto</div>
+                </div>
+
+                <table class="gantt-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">ID</th>
+                            <th rowspan="2" style="text-align: left !important; padding-left: 16px;">Descrição da Ação / Entrega</th>
+                            <th rowspan="2">Responsável</th>
+                            <th rowspan="2">Progresso</th>
+                            <th rowspan="2">Início</th>
+                            <th rowspan="2">Término</th>
+                            <th colspan="9" style="background-color: #0f172a; letter-spacing: 0.5px;">Cronograma Mensal (2026)</th>
+                        </tr>
+                        <tr>
+                            <th class="month-sub">Jan '26</th>
+                            <th class="month-sub">Fev '26</th>
+                            <th class="month-sub">Mar '26</th>
+                            <th class="month-sub">Abr '26</th>
+                            <th class="month-sub">Mai '26</th>
+                            <th class="month-sub">Jun '26</th>
+                            <th class="month-sub">Jul '26</th>
+                            <th class="month-sub">Ago '26</th>
+                            <th class="month-sub">Set '26</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>T1</td>
+                            <td class="left-align">Fase 1 - Alinhamento de Governo e Formalização</td>
+                            <td style="color: #64748b;">Coordenação</td>
+                            <td><span class="badge-progress-gantt status-100">100%</span></td>
+                            <td>17/03/2026</td>
+                            <td>22/05/2026</td>
+                            <td colspan="9" class="gantt-timeline-cell">
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-fill coordenacao">
+                                        <div class="gantt-bar-bg full-green">
+                                            <div class="gantt-bar-inner-progress"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>T2</td>
+                            <td class="left-align">Mapeamento dos Projetos Estratégicos (Plano + PPA)</td>
+                            <td style="color: #64748b;">Gestor de Projetos</td>
+                            <td><span class="badge-progress-gantt status-andamento">20%</span></td>
+                            <td>17/03/2026</td>
+                            <td>03/04/2026</td>
+                            <td colspan="9" class="gantt-timeline-cell">
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-fill tecnico-1">
+                                        <div class="gantt-bar-bg partial-yellow">
+                                            <div class="gantt-bar-inner-progress" style="width: 20%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>T3</td>
+                            <td class="left-align">Elaboração dos Termos de Abertura de Projetos (TAP)</td>
+                            <td style="color: #64748b;">Equipe Especializada</td>
+                            <td><span class="badge-progress-gantt status-andamento">65%</span></td>
+                            <td>22/04/2026</td>
+                            <td>10/06/2026</td>
+                            <td colspan="9" class="gantt-timeline-cell">
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-fill tecnico-2">
+                                        <div class="gantt-bar-bg partial-yellow">
+                                            <div class="gantt-bar-inner-progress" style="width: 65%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>T4</td>
+                            <td class="left-align">Expansão da Rede de Água e Esgoto Conectada</td>
+                            <td style="color: #64748b;">Equipe Especializada</td>
+                            <td><span class="badge-progress-gantt status-0">0%</span></td>
+                            <td>29/06/2026</td>
+                            <td>14/07/2026</td>
+                            <td colspan="9" class="gantt-timeline-cell">
+                                <div class="gantt-bar-wrapper">
+                                    <div class="gantt-bar-fill tecnico-3">
+                                        <div class="gantt-bar-bg zero-gray">
+                                            <div class="gantt-bar-inner-progress"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="gantt-footer-date">Data Atual de Monitoramento: 24/06/2026</div>
+            </div>
+        </div>
+    </div>
+
+    <img src="rodape.jpg" alt="Prefeitura de Brumadinho - Rodapé de Gestão" class="brand-footer-img">
+</div>
+
+<script>
+    function switchTab(event, tabId) {
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => content.classList.remove('active'));
+
+        const buttons = document.querySelectorAll('.tab-button');
+        buttons.forEach(button => button.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    const PROJETOS_DB = [
+        { nome: "Ampliação e Reforma da UBS Central", meta: "100%", status: "Concluído", justificativa: "Concluído dentro do prazo", secretaria: "Secretaria de Saúde", eixo: "02 Desenvolvimento Humano", orcado: 4500000, real: 4500000 },
+        { nome: "Mutirão de Exames de Alta Complexidade", meta: "100%", status: "Concluído", justificativa: "Concluído dentro do prazo", secretaria: "Secretaria de Saúde", eixo: "02 Desenvolvimento Humano", orcado: 3500000, real: 3500000 },
+        { nome: "Implementação de Telemedicina Rural", meta: "20%", status: "Não Iniciado", justificativa: "Planejado para 2027", secretaria: "Secretaria de Saúde", eixo: "02 Desenvolvimento Humano", orcado: 2000000, real: 0 },
+        { nome: "Construção do Novo Hospital Regional", meta: "45%", status: "Em Execução", justificativa: "Em andamento", secretaria: "Secretaria de Saúde", eixo: "02 Desenvolvimento Humano", orcado: 15000000, real: 12000000 },
+        { nome: "Modernização da Frota de Ambulâncias", meta: "60%", status: "Em Execução", justificativa: "Em andamento", secretaria: "Secretaria de Saúde", eixo: "02 Desenvolvimento Humano", orcado: 4000000, real: 3800000 },
+        { nome: "Aquisição de Equipamentos de Tomografia", meta: "0%", status: "Cancelado", justificativa: "Inviabilidade Financeira", secretaria: "Secretaria de Saúde", eixo: "02 Desenvolvimento Humano", orcado: 3000000, real: 0 },
+        { nome: "Pavimentação de Vias Urbanas e Drenagem", meta: "35%", status: "Em Execução", justificativa: "Em andamento", secretaria: "Secretaria de Obras", eixo: "03 Infraestrutura e Mobilidade", orcado: 12000000, real: 11000000 },
+        { nome: "Revitalização da Iluminação Pública LED", meta: "90%", status: "Em Execução", justificativa: "Em andamento", secretaria: "Secretaria de Obras", eixo: "03 Infraestrutura e Mobilidade", orcado: 5000000, real: 4800000 },
+        { nome: "Construção do Viaduto de Interligação", meta: "10%", status: "Em Planejamento", justificativa: "Fase de licenciamento", secretaria: "Secretaria de Obras", eixo: "03 Infraestrutura e Mobilidade", orcado: 8000000, real: 500000 },
+        { nome: "Reforma Preventiva das Pontes Rurais", meta: "0%", status: "Não Iniciado", justificativa: "Falta de Projeto Executivo", secretaria: "Secretaria de Obras", eixo: "03 Infraestrutura e Mobilidade", orcado: 2500000, real: 0 },
+        { nome: "Duplicação da Avenida Perimetral Sul", meta: "0%", status: "Cancelado", justificativa: "Inviabilidade Financeira", secretaria: "Secretaria de Obras", eixo: "03 Infraestrutura e Mobilidade", orcado: 9000000, real: 0 }
+    ];
+
+    function popularBancoDeDados() {
+        const secretarias = ["Secretaria de Saúde", "Secretaria de Obras", "Secretaria de Planejamento", "Secretaria de Administração", "Secretaria de Agricultura", "Secretaria de Cultura e Turismo"];
+        const eixos = ["01 Reparação", "02 Desenvolvimento Humano", "03 Infraestrutura e Mobilidade", "04 Desenvolvimento Econômico", "05 Governança"];
+        let atuais = { "Não Iniciado": 2, "Em Planejamento": 1, "Em Execução": 4, "Concluído": 2, "Cancelado": 2 };
+        const alvos = { "Não Iniciado": 25, "Em Planejamento": 30, "Em Execução": 45, "Concluído": 20, "Cancelado": 8 };
+
+        Object.keys(alvos).forEach(status => {
+            let n = alvos[status] - (atuais[status] || 0);
+            for(let i=0; i<n; i++) {
+                let sec = secretarias[i % secretarias.length];
+                let eixo = eixos[(i + status.length) % eixos.length];
+                let orcado = Math.floor(Math.random() * 500000) + 150000;
+                let real = status === "Concluído" ? orcado : (status === "Em Execução" ? Math.floor(orcado * 0.8) : 0);
+                let just = "-";
+                if (status === "Não Iniciado") {
+                    if (i < 1) just = "Planejado para 2027";
+                    else if (i < 7) just = "Inviabilidade Financeira";
+                    else if (i < 10) just = "Falta de Projeto Executivo";
+                    else just = "Recursos não Disponíveis";
+                } else if (status === "Cancelado") {
+                    if (i < 4) just = "Planejado para 2027";
+                    else if (i < 14) just = "Inviabilidade Financeira";
+                    else if (i < 20) just = "Falta de Projeto Executivo";
+                    else just = "Recursos não Disponíveis";
+                }
+                PROJETOS_DB.push({
+                    nome: `Projeto de Desenvolvimento de Ações Estratégicas - Ref #${status[0]}${i+100}`,
+                    meta: status === "Concluído" ? "100%" : (status === "Em Execução" ? "50%" : "0%"),
+                    status: status, justificativa: just, secretaria: sec, eixo: eixo, orcado: orcado, real: real
+                });
+            }
+        });
+    }
+
+    popularBancoDeDados();
+    
+    window.onload = function() { 
+        updateDashboard(); 
+        aplicarFormartacaoCondicional();
+    };
+
+    function getSelectedTooltipVision() { return document.querySelector('input[name="tooltip-vision"]:checked').value; }
+    function updateTooltipVision() { updateDashboard(); }
+    function formatCurrency(val) { return "R$ " + val.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+
+    function updateDashboard() {
+        const selSecretaria = document.getElementById("filter-secretaria").value;
+        const selEixo = document.getElementById("filter-eixo").value;
+        const vision = getSelectedTooltipVision();
+
+        const filtrados = PROJETOS_DB.filter(p => {
+            const matchSec = (selSecretaria === "Todos" || p.secretaria === selSecretaria);
+            const matchEixo = (selEixo === "Todos" || p.eixo === selEixo);
+            return matchSec && matchEixo;
+        });
+
+        let totalVal = filtrados.length;
+        let naoVal = filtrados.filter(p => p.status === "Não Iniciado").length;
+        let planVal = filtrados.filter(p => p.status === "Em Planejamento").length;
+        let execVal = filtrados.filter(p => p.status === "Em Execução").length;
+        let conclVal = filtrados.filter(p => p.status === "Concluído").length;
+        let cancVal = filtrados.filter(p => p.status === "Cancelado").length;
+
+        let totalOrcado = filtrados.reduce((acc, p) => acc + p.orcado, 0);
+        let totalReal = filtrados.reduce((acc, p) => acc + p.real, 0);
+
+        if(selSecretaria === "Todos" && selEixo === "Todos") {
+            totalVal = 128; naoVal = 25; planVal = 30; execVal = 45; conclVal = 20; cancVal = 8;
+            totalOrcado = 60000000; totalReal = 54000000;
+        }
+
+        document.getElementById("kpi-total-val").innerText = totalVal;
+        document.getElementById("kpi-nao-val").innerText = naoVal;
+        document.getElementById("kpi-plan-val").innerText = planVal;
+        document.getElementById("kpi-exec-val").innerText = execVal;
+        document.getElementById("kpi-concl-val").innerText = conclVal;
+        document.getElementById("kpi-canc-val").innerText = cancVal;
+
+        document.getElementById("invest-real-txt").innerText = formatCurrency(totalReal);
+        document.getElementById("invest-orcado-txt").innerText = formatCurrency(totalOrcado);
+        let perc = totalOrcado > 0 ? Math.round((totalReal / totalOrcado) * 100) : 0;
+        document.getElementById("invest-perc-txt").innerText = `(${perc}%)`;
+        document.getElementById("invest-progress-bar").style.width = perc + "%";
+
+        const labelVisao = vision === "eixo" ? "por Eixo Estratégico" : "por Secretaria";
+        const investFooter = document.querySelector(".invest-footer");
+        investFooter.innerHTML = `Vr. Orçado: <span id="invest-orcado-txt">${formatCurrency(totalOrcado)}</span> ` +
+                                 `<span id="invest-perc-txt" style="color:#10b981; margin-left:8px;">(${perc}%)</span>` +
+                                 `<div style="font-size:11px; color:#64748b; margin-top:5px; text-transform:uppercase; font-weight:700;">Visão: ${labelVisao}</div>`;
+
+        renderTooltip("tip-total", filtrados, "Todos", vision);
+        renderTooltip("tip-nao", filtrados, "Não Iniciado", vision);
+        renderTooltip("tip-plan", filtrados, "Em Planejamento", vision);
+        renderTooltip("tip-exec", filtrados, "Em Execução", vision);
+        renderTooltip("tip-concl", filtrados, "Concluído", vision);
+        renderTooltip("tip-canc", filtrados, "Cancelado", vision);
+
+        renderInvestimentoTooltip("tip-investimento", filtrados, vision);
+        renderMatrizTooltip("tip-matriz", filtrados, vision);
+
+        renderMatrix(filtrados, selSecretaria === "Todos" && selEixo === "Todos", vision);
+        renderBarCharts(filtrados);
+    }
+
+    function renderTooltip(elementId, dataset, status, vision) {
+        const target = document.getElementById(elementId);
+        const contentDiv = target.querySelector(".tooltip-contents");
+        const titleDiv = target.querySelector(".tooltip-title");
+        const items = status === "Todos" ? dataset : dataset.filter(p => p.status === status);
+        let mapData = {};
+        titleDiv.innerText = vision === "eixo" ? "Distribuição por Eixo" : "Distribuição por Secretaria";
+
+        items.forEach(p => {
+            let key = vision === "eixo" ? p.eixo : p.secretaria;
+            mapData[key] = (mapData[key] || 0) + 1;
+        });
+
+        if(Object.keys(mapData).length === 0) {
+            contentDiv.innerHTML = "<div class='tooltip-row'><span>Nenhum projeto</span><span>0</span></div>";
+            return;
+        }
+
+        let html = "";
+        for(let k in mapData) { html += `<div class='tooltip-row'><span>${k}</span><strong>${mapData[k]}</strong></div>`; }
+        contentDiv.innerHTML = html;
+    }
+
+    function renderInvestimentoTooltip(elementId, dataset, vision) {
+        const target = document.getElementById(elementId);
+        const contentDiv = target.querySelector(".tooltip-contents");
+        const titleDiv = target.querySelector(".tooltip-title");
+        
+        titleDiv.innerText = vision === "eixo" ? "Valor Real por Eixo" : "Valor Real por Secretaria";
+        
+        let mapData = {};
+        dataset.forEach(p => {
+            let key = vision === "eixo" ? p.eixo : p.secretaria;
+            mapData[key] = (mapData[key] || 0) + p.real;
+        });
+
+        let html = "";
+        for(let k in mapData) {
+            if(mapData[k] > 0) {
+                html += `<div class='tooltip-row'><span>${k}</span><strong>${formatCurrency(mapData[k])}</strong></div>`;
+            }
+        }
+        contentDiv.innerHTML = html || "<div class='tooltip-row'><span>Sem investimentos</span><span>R$ 0</span></div>";
+    }
+
+    function renderMatrizTooltip(elementId, dataset, vision) {
+        const target = document.getElementById(elementId);
+        const contentDiv = target.querySelector(".tooltip-contents");
+        const titleDiv = target.querySelector(".tooltip-title");
+        
+        titleDiv.innerText = vision === "eixo" ? "Parados/Canc. por Eixo" : "Parados/Canc. por Secretaria";
+        
+        let mapData = {};
+        const travados = dataset.filter(p => p.status === "Não Iniciado" || p.status === "Cancelado");
+
+        travados.forEach(p => {
+            let key = vision === "eixo" ? p.eixo : p.secretaria;
+            mapData[key] = (mapData[key] || 0) + 1;
+        });
+
+        let html = "";
+        for(let k in mapData) {
+            html += `<div class='tooltip-row'><span>${k}</span><strong>${mapData[k]} Proj.</strong></div>`;
+        }
+        contentDiv.innerHTML = html || "<div class='tooltip-row'><span>Nenhum projeto travado</span><span>0</span></div>";
+    }
+
+    function renderMatrix(dataset, isGeneralDefault, vision) {
+        const body = document.getElementById("matrix-body");
+        const justificativas = ["Planejado para 2027", "Inviabilidade Financeira", "Falta de Projeto Executivo", "Recursos não Disponíveis"];
+        const fixedNaoIni = [1, 6, 3, 9];
+        const fixedCanc = [4, 10, 6, 2];
+
+        let html = "";
+        justificativas.forEach((just, index) => {
+            let countNao = dataset.filter(p => p.status === "Não Iniciado" && p.justificativa === just).length;
+            let countCanc = dataset.filter(p => p.status === "Cancelado" && p.justificativa === just).length;
+            if (isGeneralDefault) { countNao = fixedNaoIni[index]; countCanc = fixedCanc[index]; }
+
+            html += `<tr>
+                <td class="left-align">
+                    ${just}
+                    <span style="display:block; font-size:10px; color:#94a3b8; font-weight:normal; text-transform:uppercase; margin-top:2px;">
+                        Filtro: ${vision === "eixo" ? "Eixo" : "Secretaria"}
+                    </span>
+                </td>
+                <td style="color: #64748b; font-weight: bold; vertical-align: middle;">${countNao}</td>
+                <td style="color: #06b6d4; font-weight: bold; vertical-align: middle;">${countCanc}</td>
+            </tr>`;
+        });
+        body.innerHTML = html;
+    }
+
+    function renderBarCharts(dataset) {
+        const axisContainer = document.getElementById("axis-chart-container");
+        const secContainer = document.getElementById("secretaria-chart-container");
+        const eixos = ["01 Reparação", "02 Desenvolvimento Humano", "03 Infraestrutura e Mobilidade", "04 Desenvolvimento Econômica", "05 Governança"];
+        const secretarias = ["Secretaria de Saúde", "Secretaria de Obras", "Secretaria de Planejamento", "Secretaria de Administração", "Secretaria de Agricultura", "Secretaria de Cultura e Turismo"];
+
+        let axisHtml = "";
+        eixos.forEach(eixo => {
+            let total = dataset.filter(p => p.eixo === eixo).length;
+            let pNao = total > 0 ? (dataset.filter(p => p.eixo === eixo && p.status === "Não Iniciado").length / total) * 100 : 0;
+            let pPlan = total > 0 ? (dataset.filter(p => p.eixo === eixo && p.status === "Em Planejamento").length / total) * 100 : 0;
+            let pExec = total > 0 ? (dataset.filter(p => p.eixo === eixo && p.status === "Em Execução").length / total) * 100 : 0;
+            let pConcl = total > 0 ? (dataset.filter(p => p.eixo === eixo && p.status === "Concluído").length / total) * 100 : 0;
+            let pCanc = total > 0 ? (dataset.filter(p => p.eixo === eixo && p.status === "Cancelado").length / total) * 100 : 0;
+
+            axisHtml += `<div class="chart-row">
+                <div class="chart-label">${eixo} (${total} Proj.)</div>
+                <div class="stacked-bar">
+                    <div class="bar-segment" style="width: ${pNao}%; background: #94a3b8;" title="Não Iniciado"></div>
+                    <div class="bar-segment" style="width: ${pPlan}%; background: #a855f7;" title="Em Planejamento"></div>
+                    <div class="bar-segment" style="width: ${pExec}%; background: #f59e0b;" title="Em Execução"></div>
+                    <div class="bar-segment" style="width: ${pConcl}%; background: #10b981;" title="Concluído"></div>
+                    <div class="bar-segment" style="width: ${pCanc}%; background: #06b6d4;" title="Cancelado"></div>
+                </div>
+            </div>`;
+        });
+        axisContainer.innerHTML = axisHtml;
+
+        let secHtml = "";
+        secretarias.forEach(sec => {
+            let total = dataset.filter(p => p.secretaria === sec).length;
+            let pNao = total > 0 ? (dataset.filter(p => p.secretaria === sec && p.status === "Não Iniciado").length / total) * 100 : 0;
+            let pPlan = total > 0 ? (dataset.filter(p => p.secretaria === sec && p.status === "Em Planejamento").length / total) * 100 : 0;
+            let pExec = total > 0 ? (dataset.filter(p => p.secretaria === sec && p.status === "Em Execução").length / total) * 100 : 0;
+            let pConcl = total > 0 ? (dataset.filter(p => p.secretaria === sec && p.status === "Concluído").length / total) * 100 : 0;
+            let pCanc = total > 0 ? (dataset.filter(p => p.secretaria === sec && p.status === "Cancelado").length / total) * 100 : 0;
+
+            secHtml += `<div class="chart-row">
+                <div class="chart-label">${sec} (${total} Proj.)</div>
+                <div class="stacked-bar">
+                    <div class="bar-segment" style="width: ${pNao}%; background: #94a3b8;" title="Não Iniciado"></div>
+                    <div class="bar-segment" style="width: ${pPlan}%; background: #a855f7;" title="Em Planejamento"></div>
+                    <div class="bar-segment" style="width: ${pExec}%; background: #f59e0b;" title="Em Execução"></div>
+                    <div class="bar-segment" style="width: ${pConcl}%; background: #10b981;" title="Concluído"></div>
+                    <div class="bar-segment" style="width: ${pCanc}%; background: #06b6d4;" title="Cancelado"></div>
+                </div>
+            </div>`;
+        });
+        secContainer.innerHTML = secHtml;
+    }
+
+    function aplicarFormartacaoCondicional() {
+        const celulas = document.querySelectorAll('.analise-meta');
+        
+        celulas.forEach(celula => {
+            const linha = celula.closest('tr');
+            const metaElemento = linha.querySelector('.badge-meta');
+            
+            if (metaElemento) {
+                const valorMeta = parseFloat(metaElemento.getAttribute('data-meta'));
+                const valorAno = parseFloat(celula.getAttribute('data-valor'));
+                const textoCelula = celula.innerText.trim();
+
+                if (textoCelula === "—" || textoCelula === "") {
+                    celula.style.color = "#94a3b8"; 
+                    return;
+                }
+
+                if (valorAno >= valorMeta) {
+                    celula.classList.remove('status-meta-abaixo');
+                    celula.classList.add('status-meta-atingida');
+                } else {
+                    celula.classList.remove('status-meta-atingida');
+                    celula.classList.add('status-meta-abaixo');
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

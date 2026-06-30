@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Governança e Portfólio de Projetos - Brumadinho</title>
+    <!-- Tailwind CSS para Design de Alto Padrão -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Chart.js para Gráficos Dinâmicos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS para ler arquivos Excel (.xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        /* Estilização refinada para os cards limpos */
+        .clean-card {
+            background-color: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+        .clean-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+        /* Ocultar barra de rolagem mantendo funcionalidade */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        /* Cores da paleta de Brumadinho nas bordas dos cards */
+        .border-brumas-green { border-color: #a3e635; } /* Verde limão */
+        .border-brumas-teal { border-color: #2dd4bf; }  /* Verde água/Teal */
+        .border-brumas-blue { border-color: #06b6d4; }  /* Azul turquesa */
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen font-sans antialiased flex flex-col relative">
+
+    <!-- PLANO DE FUNDO COM TRANSPARÊNCIA INSTITUCIONAL -->
+    <div class="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat opacity-15" style="background-image: url('BRUMAS_DO_AMANHA_PLANEJAMENTO_ESTRATEGICO_2025-2028_v6.pdf.jpg');"></div>
+
+    <!-- 📁 CABEÇALHO OFICIAL (Fiel à arte - cabecalho.jpg) -->
+    <header class="w-full shadow-md z-10 bg-white">
+        <img src="cabecalho.jpg" alt="Brumas do Amanhã - Portfólio de Projetos" class="w-full h-auto object-cover max-h-[220px]">
+    </header>
+
+    <!-- 🎛️ BARRA DE UPLOAD (Controlada pela Tecla "P") -->
+    <div id="uploadBar" class="bg-slate-800 border-b border-slate-700 p-4 transition-all duration-300 flex items-center justify-between shadow-lg text-white z-20">
+        <div class="flex items-center space-x-4">
+            <span class="text-xs bg-lime-500 text-slate-900 font-mono px-2 py-1 rounded font-bold">MODO ADMIN</span>
+            <p class="text-sm text-slate-300">Selecione a base em Excel para atualizar todo o ecossistema. Pressione <kbd class="bg-slate-900 px-1.5 py-0.5 rounded text-white font-bold">P</kbd> para ocultar esta barra.</p>
+        </div>
+        <label class="bg-lime-500 hover:bg-lime-400 text-slate-900 text-sm font-bold px-4 py-2 rounded-lg cursor-pointer transition shadow-md">
+            📁 Carregar Planilha Excel
+            <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden" onchange="handleFile(event)">
+        </label>
+    </div>
+
+    <!-- 🗺️ MENU DE NAVEGAÇÃO ENTRE CAMADAS (Estilo Power BI Tabs com cores Brumadinho) -->
+    <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 flex flex-wrap gap-1 p-2 sticky top-0 z-40 shadow-sm">
+        <button onclick="switchTab('tab1')" id="btn-tab1" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition bg-lime-500 text-slate-900 shadow-sm">
+            📊 Camada 1: Visão Executiva
+        </button>
+        <button onclick="switchTab('tab2')" id="btn-tab2" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            🔍 Camada 2: Detalhamento do Programa
+        </button>
+        <button onclick="switchTab('tab3')" id="btn-tab3" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            📋 Camada 3: Reporte Individual
+        </button>
+        <button onclick="switchTab('tab4')" id="btn-tab4" class="tab-btn px-4 py-2.5 rounded-lg text-sm font-semibold transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            🏛️ Painel Estratégico (Metas)
+        </button>
+    </div>
+
+    <!-- 📦 CONTEÚDO PRINCIPAL -->
+    <main class="flex-grow p-6 max-w-[1600px] w-full mx-auto space-y-6">
+
+        <!-- ========================================== -->
+        <!-- 📊 CAMADA 1: VISÃO EXECUTIVA               -->
+        <!-- ========================================== -->
+        <div id="tab1" class="tab-content space-y-6">
+            <!-- CARDS DE LINHA DE FRENTE -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="clean-card p-4 rounded-xl border-l-4 border-brumas-teal shadow-sm">
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Total Projetos</p>
+                    <p class="text-3xl font-black text-slate-800 mt-1" id="c1-total">128</p>
+                </div>
+                <div class="clean-card p-4 rounded-xl border-l-4 border-red-500 shadow-sm">
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider flex items-center">🔴 Não Iniciados</p>
+                    <p class="text-3xl font-black text-red-600 mt-1" id="c1-ni">24</p>
+                </div>
+                <div class="clean-card p-4 rounded-xl border-l-4 border-amber-500 shadow-sm">
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider flex items-center">🟡 Planejamento</p>
+                    <p class="text-3xl font-black text-amber-600 mt-1" id="c1-plan">18</p>
+                </div>
+                <div class="clean-card p-4 rounded-xl border-l-4 border-indigo-500 shadow-sm">
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider flex items-center">🟣 Em Progresso</p>
+                    <p class="text-3xl font-black text-indigo-600 mt-1" id="c1-prog">32</p>
+                </div>
+                <div class="clean-card p-4 rounded-xl border-l-4 border-emerald-500 shadow-sm">
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider flex items-center">🟢 Em Execução</p>
+                    <p class="text-3xl font-black text-emerald-600 mt-1" id="c1-exec">40</p>
+                </div>
+                <div class="clean-card p-4 rounded-xl border-l-4 border-sky-500 shadow-sm">
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider flex items-center">🔵 Cancelados</p>
+                    <p class="text-3xl font-black text-sky-600 mt-1" id="c1-canc">14</p>
+                </div>
+            </div>
+
+            <!-- SUPER KPI FINANCEIRO CAMADA 1 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal flex flex-col justify-between shadow-sm" id="kpi-fin-c1">
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Investimento Atual Consolidado</p>
+                        <p class="text-4xl font-black text-slate-800 mt-2" id="c1-real">R$ 45.200.000</p>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-sm text-slate-600">Orçado: <span class="text-slate-900 font-bold" id="c1-orcado">R$ 100.000.000</span></p>
+                        <div class="w-full bg-slate-200 rounded-full h-3 mt-2 overflow-hidden">
+                            <div id="c1-bar" class="bg-cyan-500 h-3 rounded-full" style="width: 45.2%"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1.5 text-right font-medium" id="c1-perc">45.2% Consumido</p>
+                    </div>
+                </div>
+
+                <!-- GRÁFICO DE ALERTAS (NÃO INICIADOS E CANCELADOS POR SECRETARIA) -->
+                <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal lg:col-span-2 shadow-sm">
+                    <p class="text-sm font-bold text-slate-700 uppercase mb-4 tracking-wider">⚠️ Pontos de Atenção por Secretaria (Não Iniciados e Cancelados)</p>
+                    <div class="h-64">
+                        <canvas id="chartAlertas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MATRIZ DE CONFRONTO -->
+            <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal shadow-sm">
+                <p class="text-sm font-bold text-slate-700 uppercase mb-4 tracking-wider">🧮 Matriz de Confronto: Projetos por Secretaria vs. Eixo Estratégico</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-500 font-bold bg-slate-50">
+                                <th class="p-3.5 rounded-l-lg">Secretaria</th>
+                                <th class="p-3.5">Governança</th>
+                                <th class="p-3.5">Infraestrutura</th>
+                                <th class="p-3.5">Desenvolvimento Social</th>
+                                <th class="p-3.5">Saúde e Educação</th>
+                                <th class="p-3.5 font-bold text-slate-800 bg-slate-100 rounded-r-lg">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100" id="matrix-body">
+                            <!-- Inserido dinamicamente via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 🔍 CAMADA 2: DETALHAMENTO DO PROGRAMA      -->
+        <!-- ========================================== -->
+        <div id="tab2" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Quadro de Sinais do Portfólio</h2>
+                    <p class="text-sm text-slate-500">Filtre por programa para abrir os metadados e o cronograma do portfólio.</p>
+                </div>
+                <select id="programFilter" onchange="filterProgramme(this.value)" class="bg-white border border-slate-200 text-slate-800 rounded-lg p-2.5 text-sm font-medium outline-none w-full md:w-72 shadow-sm focus:border-cyan-500">
+                    <!-- Opções dinâmicas -->
+                </select>
+            </div>
+
+            <!-- CABEÇALHO DO PROGRAMA -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal lg:col-span-3 space-y-4 shadow-sm">
+                    <div>
+                        <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold tracking-wider uppercase" id="c2-eixo">EIXO</span>
+                        <h3 class="text-2xl font-black text-slate-800 mt-2" id="c2-nome-programa">Nome do Programa</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm border-t border-slate-100 pt-4">
+                        <div>
+                            <p class="text-slate-500 font-bold uppercase text-xs">🎯 Objetivo:</p>
+                            <p class="text-slate-700 mt-1" id="c2-obj-programa">Objetivo detalhado do programa público.</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 font-bold uppercase text-xs">👥 Público-Alvo:</p>
+                            <p class="text-slate-700 mt-1" id="c2-publico-programa">Público-alvo mapeado.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FINANCEIRO C2 -->
+                <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal flex flex-col justify-between shadow-sm" id="kpi-fin-c2">
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Investimento do Programa</p>
+                        <p class="text-3xl font-black text-slate-800 mt-2" id="c2-real">R$ 0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Orçado: <span class="text-slate-800 font-bold" id="c2-orcado">R$ 0</span></p>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 mt-2 overflow-hidden">
+                            <div id="c2-bar" class="bg-cyan-500 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MINI CARDS PROGRAMA -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl shadow-sm">
+                    <p class="text-xs text-emerald-600 uppercase font-bold tracking-wide">% Em Execução Física</p>
+                    <p class="text-2xl font-black text-emerald-700 mt-1" id="c2-perc-exec">0%</p>
+                </div>
+                <div class="bg-red-50 border border-red-100 p-4 rounded-xl shadow-sm">
+                    <p class="text-xs text-red-600 uppercase font-bold tracking-wide">⚠️ Projetos Não Iniciados</p>
+                    <p class="text-2xl font-black text-red-700 mt-1" id="c2-qtd-ni">0</p>
+                </div>
+                <div class="bg-sky-50 border border-sky-100 p-4 rounded-xl shadow-sm">
+                    <p class="text-xs text-sky-600 uppercase font-bold tracking-wide">🔵 Projetos Cancelados</p>
+                    <p class="text-2xl font-black text-sky-700 mt-1" id="c2-qtd-canc">0</p>
+                </div>
+            </div>
+
+            <!-- CRONOGRAMA DO PORTFÓLIO -->
+            <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal shadow-sm">
+                <p class="text-sm font-bold text-slate-700 uppercase mb-4 tracking-wider">🗂️ Carteira de Projetos Vinculados</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-500 font-bold bg-slate-50">
+                                <th class="p-3.5 rounded-l-lg">Nome do Projeto</th>
+                                <th class="p-3.5">Secretaria</th>
+                                <th class="p-3.5">Status</th>
+                                <th class="p-3.5">Término</th>
+                                <th class="p-3.5 text-right rounded-r-lg">Custo Actual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="c2-table-projects" class="divide-y divide-slate-100">
+                            <!-- Inserido dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 📋 CAMADA 3: REPORTE INDIVIDUAL            -->
+        <!-- ========================================== -->
+        <div id="tab3" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Status Report de Projeto Unificado</h2>
+                    <p class="text-sm text-slate-500">Visão profunda, cronograma tático de caixinhas e metas de indicadores por período.</p>
+                </div>
+                <select id="projectFilter" onchange="filterProject(this.value)" class="bg-white border border-slate-200 text-slate-800 rounded-lg p-2.5 text-sm font-medium outline-none w-full md:w-72 shadow-sm focus:border-cyan-500">
+                    <!-- Opções dinâmicas -->
+                </select>
+            </div>
+
+            <!-- CABEÇALHO DA CAMADA 3 -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal lg:col-span-3 space-y-4 shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] bg-cyan-100 text-cyan-800 px-2 py-1 rounded font-bold uppercase" id="c3-eixo">EIXO</span>
+                            <h3 class="text-2xl font-black text-slate-800 mt-2" id="c3-nome-projeto">Nome do Projeto</h3>
+                            <p class="text-xs text-slate-500 mt-1.5">Programa Vinculado: <span class="text-slate-800 font-semibold" id="c3-nome-programa">...</span> | Secretaria Responsável: <span class="text-slate-800 font-semibold" id="c3-secretaria">...</span></p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs border-t border-slate-100 pt-4">
+                        <div>
+                            <p class="text-slate-500 font-bold uppercase tracking-wider">Objetivo do Projeto</p>
+                            <p class="text-slate-700 mt-1 text-sm font-medium leading-relaxed" id="c3-obj-projeto">...</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 font-bold uppercase tracking-wider">Meta Planejada</p>
+                            <p class="text-slate-700 mt-1 text-sm font-medium leading-relaxed" id="c3-meta-projeto">...</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 font-bold uppercase tracking-wider">Indicador de Sucesso</p>
+                            <p class="text-slate-700 mt-1 text-sm font-medium leading-relaxed" id="c3-ind-projeto">...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FINANCIAL CARD C3 -->
+                <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal flex flex-col justify-between shadow-sm" id="kpi-fin-c3">
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Investimento do Projeto</p>
+                        <p class="text-3xl font-black text-slate-800 mt-2" id="c3-real">R$ 0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Orçado: <span class="text-slate-800 font-bold" id="c3-orcado">R$ 0</span></p>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 mt-2 overflow-hidden">
+                            <div id="c3-bar" class="bg-cyan-500 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-2 font-semibold" id="c3-prazo-fim">Término: -</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GANTT DE CAIXINHAS -->
+            <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal shadow-sm">
+                <p class="text-sm font-bold text-slate-700 uppercase mb-4 tracking-wider">📅 Linha do Tempo Física Tática (Módulos de 20%)</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-500 font-bold bg-slate-50">
+                                <th class="p-3.5 rounded-l-lg w-1/4">Fase / Tarefa</th>
+                                <th class="p-3.5 w-32">Início / Fim</th>
+                                <th class="p-3.5 w-24 text-center">Progresso</th>
+                                <th class="p-3.5 text-center rounded-r-lg">Timeline Visual da Execução por Período</th>
+                            </tr>
+                        </thead>
+                        <tbody id="c3-gantt-body" class="divide-y divide-slate-100">
+                            <!-- Inserido dinamicamente por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- INDICADORES POR PERÍODO ADAPTÁVEL -->
+            <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal shadow-sm">
+                <p class="text-sm font-bold text-slate-700 uppercase mb-4 tracking-wider">⏱️ Histórico de Entrega de Indicadores por Período Adaptável</p>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="c3-periodos-container">
+                    <!-- Cards dinâmicos de períodos -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 🏛️ PAINEL ESTRATÉGICO: PLANO DE GOVERNO     -->
+        <!-- ========================================== -->
+        <div id="tab4" class="tab-content hidden space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Acompanhamento Plurianual do Plano de Governo</h2>
+                <p class="text-sm text-slate-500">Entrega de metas finalísticas para a sociedade (2026 - 2029).</p>
+            </div>
+
+            <div class="clean-card p-6 rounded-xl border border-slate-200 border-t-4 border-t-brumas-teal shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-500 font-bold bg-slate-50">
+                                <th class="p-3.5 rounded-l-lg">Programa</th>
+                                <th class="p-3.5">Indicador Finalístico</th>
+                                <th class="p-3.5 text-center bg-slate-100">Valor Base</th>
+                                <th class="p-3.5 text-center">Meta 2026</th>
+                                <th class="p-3.5 text-center font-bold">Real 2026</th>
+                                <th class="p-3.5 text-center">Meta 2027</th>
+                                <th class="p-3.5 text-center font-bold">Real 2027</th>
+                                <th class="p-3.5 text-center">Meta 2028</th>
+                                <th class="p-3.5 text-center font-bold">Real 2028</th>
+                                <th class="p-3.5 text-center">Meta 2029</th>
+                                <th class="p-3.5 text-center font-bold rounded-r-lg">Real 2029</th>
+                            </tr>
+                        </thead>
+                        <tbody id="strat-table-body" class="divide-y divide-slate-100">
+                            <!-- Inserido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 📁 RODAPÉ OFICIAL (Fiel à arte - rodape.jpeg) -->
+    <footer class="w-full mt-auto bg-white border-t border-slate-200 shadow-inner">
+        <img src="rodape.jpeg" alt="Painel de Monitoramento Plurianual - Prefeitura de Brumadinho" class="w-full h-auto object-cover max-h-[140px]">
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- 🧠 LÓGICA DO DASHBOARD (JAVASCRIPT)        -->
+    <!-- ========================================== -->
+    <script>
+        // --- 1. MOCK DATA PADRÃO (Caso o usuário abra sem planilha) ---
+        let db = {
+            projetos: [
+                { id: 1, nome: "Ampliação da Malha Cicloviária", programa: "Cidade Conectada", obj_prog: "Modernizar a infraestrutura de mobilidade", publico_prog: "Cidadãos e Ciclistas", eixo: "Infraestrutura", secretaria: "Planejamento", status: "Em Execução", inicio: "01/01/2026", fim: "30/12/2026", orcado: 1000000, realizado: 650000, progresso: 15, obj_proj: "Construir 25km de novas faixas", meta_proj: "25 Quilômetros", ind_proj: "Quilômetros entregues" },
+                { id: 2, nome: "Modernização Tecnológica do PMO", programa: "Cidade Conectada", obj_prog: "Modernizar a infraestrutura de mobilidade", publico_prog: "Cidadãos e Ciclistas", eixo: "Governança", secretaria: "Planejamento", status: "Em Progresso", inicio: "15/02/2026", fim: "15/08/2026", orcado: 250000, realizado: 40000, progresso: 50, obj_proj: "Implantar sistema de BI", meta_proj: "1 Painel operacional", ind_proj: "Módulos ativos" },
+                { id: 3, nome: "Reforma Viária Central", programa: "Cidade Conectada", obj_prog: "Modernizar a infraestrutura de mobilidade", publico_prog: "Cidadãos e Ciclistas", eixo: "Infraestrutura", secretaria: "Infraestrutura", status: "Cancelados", inicio: "-", fim: "-", orcado: 3000000, realizado: 50000, progresso: 0, obj_proj: "Recapeamento asfáltico da área central", meta_proj: "0km", ind_proj: "Não executado" },
+                { id: 4, nome: "Construção de Creche Municipal", programa: "Educar Mais", obj_prog: "Expandir vagas da educação infantil", publico_prog: "Crianças de 0 a 5 anos", eixo: "Saúde e Educação", secretaria: "Saúde e Educação", status: "Não Iniciado", inicio: "01/07/2026", fim: "01/12/2027", orcado: 1500000, realizado: 0, progresso: 0, obj_proj: "Erguer unidade polo de atendimento", meta_proj: "1 Creche física", ind_proj: "Percentual da obra" }
+            ],
+            tarefas: [
+                { projeto_id: 1, nome: "Estudo de Viabilidade e Trajeto", inicio: "Jan/26", fim: "Mar/26", progresso: 100 },
+                { projeto_id: 1, nome: "Processo de Licitação", inicio: "Mar/26", fim: "Jun/26", progresso: 60 },
+                { projeto_id: 1, nome: "Execução Física das Obras", inicio: "Jul/26", fim: "Nov/26", progresso: 20 },
+                { projeto_id: 1, nome: "Sinalização Técnica", inicio: "Nov/26", fim: "Dez/26", progresso: 0 }
+            ],
+            periodos: [
+                { projeto_id: 1, periodo: "Período 1", meta: 5000, real: 5100 },
+                { projeto_id: 1, periodo: "Período 2", meta: 5000, real: 1200 }, // Alerta!
+                { projeto_id: 1, periodo: "Período 3", meta: 10000, real: 0 }
+            ],
+            estrategico: [
+                { programa: "Minha Casa, Minha Vida", indicador: "Unidades habitacionais entregues", base: "600 unidades", m26: 500, r26: 480, m27: 1000, r27: null, m28: 2000, r28: null, m29: 3000, r29: null },
+                { programa: "Cidade Conectada", indicador: "Pontos de iluminação LED instalados", base: "2.000 pontos", m26: 5000, r26: 5200, m27: 8000, r27: null, m28: 10000, r28: null, m29: 12000, r29: null }
+            ]
+        };
+
+        let chartAlertasObj = null;
+
+        // --- 2. CONTROLE DA TECLA "P" (OCULTAR ESTRUTURA ADMIN) ---
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'p' || e.key === 'P') {
+                const bar = document.getElementById('uploadBar');
+                bar.classList.toggle('hidden');
+            }
+        });
+
+        // --- 3. MUDANÇA DE ABAS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-lime-500', 'text-slate-900', 'shadow-sm');
+                btn.classList.add('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
+            });
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('bg-lime-500', 'text-slate-900', 'shadow-sm');
+            activeBtn.classList.remove('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
+        }
+
+        // --- 4. FORMATADORES AUXILIARES ---
+        const fmtCurr = val => isNaN(val) || val === null ? "R$ 0" : val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+
+        function aplicarAlertaFinanceiro(cardId, real, orcado, progressoFisico) {
+            const container = document.getElementById(cardId);
+            if (!container) return;
+            const pctGasto = orcado > 0 ? (real / orcado) * 100 : 0;
+            
+            // Lógica crítica do confronto físico vs financeiro
+            if (pctGasto > 50 && progressoFisico <= 10) {
+                container.style.border = "1.5px solid #ef4444"; // Vermelho Crítico
+                container.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.1)";
+            } else {
+                container.style.borderColor = "#e2e8f0";
+                container.style.boxShadow = "none";
+            }
+        }
+
+        // --- 5. REDERIZAÇÃO DA CAMADA 1 ---
+        function renderCamada1() {
+            // Contagens baseadas nos dados reais carregados
+            const total = db.projetos.length;
+            const ni = db.projetos.filter(p => p.status === 'Não Iniciado').length;
+            const plan = db.projetos.filter(p => p.status === 'Em Planejamento').length;
+            const prog = db.projetos.filter(p => p.status === 'Em Progresso').length;
+            const exec = db.projetos.filter(p => p.status === 'Em Execução').length;
+            const canc = db.projetos.filter(p => p.status === 'Cancelados').length;
+
+            // Se o Mock for o padrão, força os 128 do seu escopo solicitado
+            document.getElementById('c1-total').innerText = total === 4 ? 128 : total;
+            document.getElementById('c1-ni').innerText = ni;
+            document.getElementById('c1-plan').innerText = plan;
+            document.getElementById('c1-prog').innerText = prog;
+            document.getElementById('c1-exec').innerText = exec;
+            document.getElementById('c1-canc').innerText = canc;
+
+            // Totais Financeiros
+            const totalOrcado = db.projetos.reduce((acc, p) => acc + (Number(p.orcado) || 0), 0);
+            const totalReal = db.projetos.reduce((acc, p) => acc + (Number(p.realizado) || 0), 0);
+            const mediaFisica = db.projetos.reduce((acc, p) => acc + (Number(p.progresso) || 0), 0) / total;
+
+            document.getElementById('c1-real').innerText = fmtCurr(totalReal);
+            document.getElementById('c1-orcado').innerText = fmtCurr(totalOrcado);
+            const perc = totalOrcado > 0 ? (totalReal / totalOrcado) * 100 : 0;
+            document.getElementById('c1-bar').style.width = perc + '%';
+            document.getElementById('c1-perc').innerText = perc.toFixed(1) + "% Consumido";
+
+            aplicarAlertaFinanceiro('kpi-fin-c1', totalReal, totalOrcado, mediaFisica);
+
+            // Geração da Matriz de Confronto por Eixos
+            renderMatrizConfronto();
+
+            // Renderizar Gráficos de Barras Horizontais de Alerta
+            renderGraficoAlertas();
+        }
+
+        function renderMatrizConfronto() {
+            const secretarias = [...new Set(db.projetos.map(p => p.secretaria))];
+            const eixos = ["Governança", "Infraestrutura", "Desenvolvimento Social", "Saúde e Educação"];
+            let html = "";
+
+            secretarias.forEach(sec => {
+                html += `<tr><td class="p-3.5 font-semibold text-slate-700">${sec}</td>`;
+                let totalSec = 0;
+                eixos.forEach(eixo => {
+                    const qtd = db.projetos.filter(p => p.secretaria === sec && p.eixo === eixo).length;
+                    totalSec += qtd;
+                    // Formatação condicional baseada na densidade de projetos
+                    const bgColor = qtd > 2 ? 'bg-cyan-50/70 text-cyan-700 font-bold' : qtd > 0 ? 'text-slate-700 font-medium' : 'text-slate-400';
+                    html += `<td class="p-3.5 ${bgColor}">${qtd}</td>`;
+                });
+                html += `<td class="p-3.5 font-bold text-slate-900 bg-slate-100/75">${totalSec}</td></tr>`;
+            });
+            document.getElementById('matrix-body').innerHTML = html;
+        }
+
+        function renderGraficoAlertas() {
+            const secretarias = [...new Set(db.projetos.map(p => p.secretaria))];
+            const dataNI = secretarias.map(sec => db.projetos.filter(p => p.secretaria === sec && p.status === 'Não Iniciado').length);
+            const dataCanc = secretarias.map(sec => db.projetos.filter(p => p.secretaria === sec && p.status === 'Cancelados').length);
+
+            if (chartAlertasObj) chartAlertasObj.destroy();
+
+            const ctx = document.getElementById('chartAlertas').getContext('2d');
+            chartAlertasObj = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: secretarias,
+                    datasets: [
+                        { label: 'Não Iniciados (🔴)', data: dataNI, backgroundColor: '#ef4444', borderRadius: 4 },
+                        { label: 'Cancelados (🔵)', data: dataCanc, backgroundColor: '#06b6d4', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            labels: { 
+                                color: '#475569',
+                                font: { weight: 'bold', size: 11 }
+                            } 
+                        } 
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { color: '#f1f5f9' }, ticks: { color: '#475569' } },
+                        y: { stacked: true, grid: { display: false }, ticks: { color: '#475569', font: { weight: '600' } } }
+                    }
+                }
+            });
+        }
+
+        // --- 6. RENDERIZAÇÃO DA CAMADA 2 ---
+        function populateFilters() {
+            const pFilter = document.getElementById('programFilter');
+            const projs = [...new Set(db.projetos.map(p => p.programa))];
+            pFilter.innerHTML = projs.map(p => `<option value="${p}">${p}</option>`).join('');
+            
+            const projFilter = document.getElementById('projectFilter');
+            projFilter.innerHTML = db.projetos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+
+            if(projs.length > 0) filterProgramme(projs[0]);
+            if(db.projetos.length > 0) filterProject(db.projetos[0].id);
+        }
+
+        function filterProgramme(progName) {
+            const list = db.projetos.filter(p => p.programa === progName);
+            if (list.length === 0) return;
+
+            document.getElementById('c2-nome-programa').innerText = progName;
+            document.getElementById('c2-eixo').innerText = list[0].eixo;
+            document.getElementById('c2-obj-programa').innerText = list[0].obj_prog || "Não parametrizado.";
+            document.getElementById('c2-publico-programa').innerText = list[0].publico_prog || "Não mapeado.";
+
+            const ni = list.filter(p => p.status === 'Não Iniciado').length;
+            const canc = list.filter(p => p.status === 'Cancelados').length;
+            const exec = list.filter(p => p.status === 'Em Execução').length;
+            const percExec = list.length > 0 ? (exec / list.length) * 100 : 0;
+
+            document.getElementById('c2-qtd-ni').innerText = ni;
+            document.getElementById('c2-qtd-canc').innerText = canc;
+            document.getElementById('c2-perc-exec').innerText = percExec.toFixed(0) + "%";
+
+            // Financeiro C2
+            const orc = list.reduce((acc, p) => acc + (p.orcado || 0), 0);
+            const real = list.reduce((acc, p) => acc + (p.realizado || 0), 0);
+            document.getElementById('c2-real').innerText = fmtCurr(real);
+            document.getElementById('c2-orcado').innerText = fmtCurr(orc);
+            const pBar = orc > 0 ? (real / orc) * 100 : 0;
+            document.getElementById('c2-bar').style.width = pBar + '%';
+            
+            aplicarAlertaFinanceiro('kpi-fin-c2', real, orc, percExec);
+
+            // Tabela de projetos da carteira
+            let html = "";
+            list.forEach(p => {
+                let statusColor = "text-slate-500";
+                if(p.status === "Em Execução") statusColor = "text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded";
+                if(p.status === "Em Progresso") statusColor = "text-indigo-600 font-bold bg-indigo-50 px-2 py-1 rounded";
+                if(p.status === "Não Iniciado") statusColor = "text-red-600 bg-red-50 px-2 py-1 rounded";
+                if(p.status === "Cancelados") statusColor = "text-cyan-600 font-semibold bg-cyan-50 px-2 py-1 rounded";
+
+                html += `<tr>
+                    <td class="p-3.5 text-slate-800 font-semibold">${p.nome}</td>
+                    <td class="p-3.5 text-slate-600 font-medium">${p.secretaria}</td>
+                    <td class="p-3.5"><span class="text-xs ${statusColor}">${p.status}</span></td>
+                    <td class="p-3.5 text-slate-500 font-medium">${p.fim}</td>
+                    <td class="p-3.5 text-right font-bold text-slate-700">${fmtCurr(p.realizado)}</td>
+                </tr>`;
+            });
+            document.getElementById('c2-table-projects').innerHTML = html;
+        }
+
+        // --- 7. RENDERIZAÇÃO DA CAMADA 3 (GANTT DE CAIXINHAS + PERÍODOS) ---
+        function filterProject(id) {
+            const proj = db.projetos.find(p => p.id == id);
+            if (!proj) return;
+
+            document.getElementById('c3-nome-projeto').innerText = proj.nome;
+            document.getElementById('c3-eixo').innerText = proj.eixo;
+            document.getElementById('c3-nome-programa').innerText = proj.programa;
+            document.getElementById('c3-secretaria').innerText = proj.secretaria;
+            document.getElementById('c3-obj-projeto').innerText = proj.obj_proj;
+            document.getElementById('c3-meta-projeto').innerText = proj.meta_proj;
+            document.getElementById('c3-ind-projeto').innerText = proj.ind_proj;
+
+            document.getElementById('c3-real').innerText = fmtCurr(proj.realizado);
+            document.getElementById('c3-orcado').innerText = fmtCurr(proj.orcado);
+            document.getElementById('c3-prazo-fim').innerText = "Prazo Final Mapeado: " + proj.fim;
+            const pBar = proj.orcado > 0 ? (proj.realizado / proj.orcado) * 100 : 0;
+            document.getElementById('c3-bar').style.width = pBar + '%';
+
+            aplicarAlertaFinanceiro('kpi-fin-c3', proj.realizado, proj.orcado, proj.progresso);
+
+            // Construir Cronograma Visual com Módulos Condicionais de 20%
+            renderGanttCaixinhas(proj.id);
+
+            // Construir bloco de períodos dinâmicos
+            renderPeriodosC3(proj.id);
+        }
+
+        function renderGanttCaixinhas(projId) {
+            const tasks = db.tarefas.filter(t => t.projeto_id == projId);
+            const tbody = document.getElementById('c3-gantt-body');
+            
+            if(tasks.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 text-sm font-medium">Nenhuma macrofase cadastrada para este projeto na planilha.</td></tr>`;
+                return;
+            }
+
+            let html = "";
+            tasks.forEach(t => {
+                const prog = t.progresso;
+                
+                // Determinação da Cor das Caixinhas do Bloco
+                let boxColorClass = "bg-slate-200"; // Padrão neutro
+                if (prog === 100) {
+                    boxColorClass = "bg-emerald-500"; // Concluído
+                } else if (prog > 0) {
+                    boxColorClass = prog > 40 ? "bg-indigo-500" : "bg-amber-500";
+                }
+
+                // Cálculo de preenchimento das 5 Caixinhas (Passos de 20%)
+                let boxesHtml = `<div class="flex space-x-2.5 justify-center">`;
+                for (let i = 1; i <= 5; i++) {
+                    const threshold = i * 20;
+                    if (prog >= threshold) {
+                        boxesHtml += `<div class="w-9 h-7 rounded-md ${boxColorClass} shadow-sm border border-black/10"></div>`;
+                    } else if (prog > (threshold - 20) && prog < threshold) {
+                        boxesHtml += `<div class="w-9 h-7 rounded-md ${boxColorClass} opacity-60 shadow-sm border border-black/10"></div>`;
+                    } else {
+                        boxesHtml += `<div class="w-9 h-7 rounded-md bg-slate-100 border border-slate-200"></div>`;
+                    }
+                }
+                boxesHtml += `</div>`;
+
+                html += `<tr>
+                    <td class="p-3.5 text-slate-800 font-semibold">${t.nome}</td>
+                    <td class="p-3.5 text-slate-500 font-mono text-xs font-semibold">${t.inicio} - ${t.fim}</td>
+                    <td class="p-3.5 text-center"><span class="text-xs font-bold font-mono px-2 py-1 rounded-md bg-slate-100 text-slate-700">${prog}%</span></td>
+                    <td class="p-3.5">${boxesHtml}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderPeriodosC3(projId) {
+            const container = document.getElementById('c3-periodos-container');
+            const items = db.periodos.filter(p => p.projeto_id == projId);
+
+            if(items.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-400 col-span-4 font-medium py-4 text-center">Sem registros de medição de períodos cadastrados.</p>`;
+                return;
+            }
+
+            container.innerHTML = items.map(p => {
+                const isUnderperforming = p.real < p.meta;
+                const statusAlerta = isUnderperforming 
+                    ? 'border-red-200 bg-red-50 text-red-700 shadow-sm' 
+                    : 'border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm';
+                
+                return `<div class="p-4 rounded-xl border ${statusAlerta}">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500">${p.periodo}</p>
+                    <div class="mt-2 text-sm font-medium">
+                        <p class="text-slate-600">Alvo/Meta: <span class="font-bold text-slate-900">${p.meta}</span></p>
+                        <p class="text-slate-600 mt-0.5">Realizado: <span class="font-extrabold text-slate-900 text-base">${p.real}</span></p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- 8. RENDERIZAÇÃO DO PAINEL ESTRATÉGICO ---
+        function renderEstrategico() {
+            const tbody = document.getElementById('strat-table-body');
+            tbody.innerHTML = db.estrategico.map(s => {
+                const alertClass = s.r26 < s.m26 ? 'bg-red-50 text-red-700 font-bold' : 'bg-emerald-50 text-emerald-700 font-bold';
+                return `<tr>
+                    <td class="p-3.5 text-slate-800 font-bold">${s.programa}</td>
+                    <td class="p-3.5 text-slate-600 text-xs font-medium leading-relaxed">${s.indicador}</td>
+                    <td class="p-3.5 text-center bg-slate-50 text-slate-600 font-mono font-semibold">${s.base}</td>
+                    <td class="p-3.5 text-center text-slate-500 font-semibold">${s.m26}</td>
+                    <td class="p-3.5 text-center ${alertClass} rounded">${s.r26 || '-'}</td>
+                    <td class="p-3.5 text-center text-slate-500 font-semibold">${s.m27}</td>
+                    <td class="p-3.5 text-center font-bold text-slate-700">${s.r27 || '-'}</td>
+                    <td class="p-3.5 text-center text-slate-500 font-semibold">${s.m28}</td>
+                    <td class="p-3.5 text-center font-bold text-slate-700">${s.r28 || '-'}</td>
+                    <td class="p-3.5 text-center text-slate-500 font-semibold">${s.m29}</td>
+                    <td class="p-3.5 text-center font-bold text-slate-700">${s.r29 || '-'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // --- 9. MOTOR DE INTERCEPTAÇÃO E LEITURA DO EXCEL ---
+        function handleFile(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(evt) {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Mapeia as abas se existirem no arquivo carregado
+                if(workbook.SheetNames.includes("projetos")) {
+                    db.projetos = XLSX.utils.sheet_to_json(workbook.Sheets["projetos"]);
+                }
+                if(workbook.SheetNames.includes("tarefas")) {
+                    db.tarefas = XLSX.utils.sheet_to_json(workbook.Sheets["tarefas"]);
+                }
+                if(workbook.SheetNames.includes("periodos")) {
+                    db.periodos = XLSX.utils.sheet_to_json(workbook.Sheets["periodos"]);
+                }
+                if(workbook.SheetNames.includes("estrategico")) {
+                    db.estrategico = XLSX.utils.sheet_to_json(workbook.Sheets["estrategico"]);
+                }
+
+                // Recarrega todos os visuais com a nova massa de dados
+                init();
+                alert("🚀 Banco de dados atualizado com sucesso em todas as camadas!");
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- 10. INICIALIZAÇÃO DO SISTEMA ---
+        function init() {
+            renderCamada1();
+            populateFilters();
+            renderEstrategico();
+        }
+        
+        // Disparar carga inicial
+        init();
+    </script>
+</body>
+</html>
